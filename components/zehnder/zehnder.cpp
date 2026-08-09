@@ -83,24 +83,48 @@ static int clamp_voltage(const int value) {
 
 ZehnderRF::ZehnderRF(void) {}
 
-fan::FanTraits ZehnderRF::get_traits() { return fan::FanTraits(false, true, false, this->speed_count_); }
+fan::FanTraits ZehnderRF::get_traits() {
+  fan::FanTraits traits(false, true, false, this->speed_count_);
+  this->wire_preset_modes_(traits);
+  return traits;
+}
 
 void ZehnderRF::control(const fan::FanCall &call) {
   if (call.get_state().has_value()) {
     this->state = *call.get_state();
-    ESP_LOGD(TAG, "Fan control state changed: %s", this->state ? "ON" : "OFF");
+
+    ESP_LOGD(
+        TAG,
+        "Fan control state changed: %s",
+        this->state ? "ON" : "OFF"
+    );
   }
+
   if (call.get_speed().has_value()) {
     this->speed = *call.get_speed();
-    ESP_LOGD(TAG, "Fan control speed changed: %u", this->speed);
+
+    ESP_LOGD(
+        TAG,
+        "Fan control speed changed: %u",
+        this->speed
+    );
   }
+
+  // Let ESPHome update/clear the active preset.
+  this->apply_preset_mode_(call);
 
   switch (this->state_) {
     case StateIdle:
-      // Set speed
-      this->setSpeed(this->state ? this->speed : 0x00, 0);
+      if (call.get_speed().has_value() ||
+          call.get_state().has_value()) {
 
-      this->lastFanQuery_ = millis();  // Update time
+        this->setSpeed(
+            this->state ? this->speed : FAN_SPEED_AUTO,
+            0
+        );
+
+        this->lastFanQuery_ = millis();
+      }
       break;
 
     default:
@@ -111,6 +135,7 @@ void ZehnderRF::control(const fan::FanCall &call) {
 }
 
 void ZehnderRF::setup() {
+  
   ESP_LOGCONFIG(TAG, "ZEHNDER '%s':", this->get_name().c_str());
 
   // Clear config
@@ -414,6 +439,30 @@ void ZehnderRF::rfHandleReceived(const uint8_t *const pData, const uint8_t dataL
             this->speed = pResponse->payload.fanSettings.speed;
             this->timer = pResponse->payload.fanSettings.timer;
             this->voltage = clamp_voltage(pResponse->payload.fanSettings.voltage);
+
+            switch (this->speed) {
+              case FAN_SPEED_LOW:
+                this->set_preset_mode_("Low");
+                break;
+
+              case FAN_SPEED_MEDIUM:
+                this->set_preset_mode_("Medium");
+                break;
+
+              case FAN_SPEED_HIGH:
+                this->set_preset_mode_("High");
+                break;
+
+              case FAN_SPEED_MAX:
+                this->set_preset_mode_("Max");
+                break;
+
+              case FAN_SPEED_AUTO:
+              default:
+                this->set_preset_mode_("Auto");
+                break;
+            }
+
             this->publish_state();
 
             this->state_ = StateIdle;
@@ -447,6 +496,30 @@ void ZehnderRF::rfHandleReceived(const uint8_t *const pData, const uint8_t dataL
             this->speed = pResponse->payload.fanSettings.speed;
             this->timer = pResponse->payload.fanSettings.timer;
             this->voltage = clamp_voltage(pResponse->payload.fanSettings.voltage);
+
+            switch (this->speed) {
+              case FAN_SPEED_LOW:
+                this->set_preset_mode_("Low");
+                break;
+
+              case FAN_SPEED_MEDIUM:
+                this->set_preset_mode_("Medium");
+                break;
+
+              case FAN_SPEED_HIGH:
+                this->set_preset_mode_("High");
+                break;
+
+              case FAN_SPEED_MAX:
+                this->set_preset_mode_("Max");
+                break;
+
+              case FAN_SPEED_AUTO:
+              default:
+                this->set_preset_mode_("Auto");
+                break;
+            }
+
             this->publish_state();
 
             (void) memset(this->_txFrame, 0, FAN_FRAMESIZE);  // Clear frame data

@@ -1,7 +1,8 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import fan
-from esphome.const import CONF_ID, CONF_UPDATE_INTERVAL
+from esphome.components.fan import validate_preset_modes
+from esphome.const import CONF_ID, CONF_PRESET_MODES, CONF_UPDATE_INTERVAL
 
 from esphome.components.nrf905 import nRF905Component
 from . import zehnder_ns, ZehnderRF
@@ -15,6 +16,7 @@ CONFIG_SCHEMA = fan.fan_schema(ZehnderRF).extend(
     {
         cv.Required(CONF_NRF905): cv.use_id(nRF905Component),
         cv.Optional(CONF_UPDATE_INTERVAL, default="30s"): cv.update_interval,
+        cv.Optional(CONF_PRESET_MODES): validate_preset_modes,
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -26,5 +28,7 @@ async def to_code(config):
 
     nrf905 = await cg.get_variable(config[CONF_NRF905])
     cg.add(var.set_rf(nrf905))
-
     cg.add(var.set_update_interval(config[CONF_UPDATE_INTERVAL]))
+
+    if CONF_PRESET_MODES in config:
+        cg.add(var.set_supported_preset_modes(config[CONF_PRESET_MODES]))
