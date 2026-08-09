@@ -446,6 +446,30 @@ void ZehnderRF::rfHandleReceived(const uint8_t *const pData, const uint8_t dataL
             this->speed = pResponse->payload.fanSettings.speed;
             this->timer = pResponse->payload.fanSettings.timer;
             this->voltage = clamp_voltage(pResponse->payload.fanSettings.voltage);
+
+            switch (this->speed) {
+              case FAN_SPEED_LOW:
+                this->set_preset_mode_("Low");
+                break;
+
+              case FAN_SPEED_MEDIUM:
+                this->set_preset_mode_("Medium");
+                break;
+
+              case FAN_SPEED_HIGH:
+                this->set_preset_mode_("High");
+                break;
+
+              case FAN_SPEED_MAX:
+                this->set_preset_mode_("Max");
+                break;
+
+              case FAN_SPEED_AUTO:
+              default:
+                this->set_preset_mode_("Auto");
+                break;
+            }
+
             this->publish_state();
 
             this->state_ = StateIdle;
@@ -479,6 +503,30 @@ void ZehnderRF::rfHandleReceived(const uint8_t *const pData, const uint8_t dataL
             this->speed = pResponse->payload.fanSettings.speed;
             this->timer = pResponse->payload.fanSettings.timer;
             this->voltage = clamp_voltage(pResponse->payload.fanSettings.voltage);
+
+            switch (this->speed) {
+              case FAN_SPEED_LOW:
+                this->set_preset_mode_("Low");
+                break;
+
+              case FAN_SPEED_MEDIUM:
+                this->set_preset_mode_("Medium");
+                break;
+
+              case FAN_SPEED_HIGH:
+                this->set_preset_mode_("High");
+                break;
+
+              case FAN_SPEED_MAX:
+                this->set_preset_mode_("Max");
+                break;
+
+              case FAN_SPEED_AUTO:
+              default:
+                this->set_preset_mode_("Auto");
+                break;
+            }
+
             this->publish_state();
 
             (void) memset(this->_txFrame, 0, FAN_FRAMESIZE);  // Clear frame data
