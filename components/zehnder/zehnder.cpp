@@ -135,13 +135,6 @@ void ZehnderRF::control(const fan::FanCall &call) {
 }
 
 void ZehnderRF::setup() {
-  this->set_supported_preset_modes({
-      "Auto",
-      "Low",
-      "Medium",
-      "High",
-      "Max"
-  });
   
   ESP_LOGCONFIG(TAG, "ZEHNDER '%s':", this->get_name().c_str());
 
