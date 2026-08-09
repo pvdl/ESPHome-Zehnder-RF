@@ -83,7 +83,11 @@ static int clamp_voltage(const int value) {
 
 ZehnderRF::ZehnderRF(void) {}
 
-fan::FanTraits ZehnderRF::get_traits() { return fan::FanTraits(false, true, false, this->speed_count_); }
+fan::FanTraits ZehnderRF::get_traits() {
+  fan::FanTraits(false, true, false, this->speed_count_);
+  this->wire_preset_modes_(traits);
+  return traits;
+}
 
 void ZehnderRF::control(const fan::FanCall &call) {
   if (call.get_state().has_value()) {
